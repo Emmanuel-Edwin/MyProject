@@ -10,13 +10,13 @@ test_font=pygame.font.Font(None,50)
 x=50
 y=300
 
-sky_surface = pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (5).png").convert()
-gun_surface = pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (8).png").convert()
+sky_surface = pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (5).png").convert() #.convert_alpha() is more efficient
+gun_surface = pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (8).png").convert() #.convert_alpha() is more efficient
 text_surface=test_font.render('Reload!!',False,'Black')
 text_surface2=test_font.render('Reloading!!',False,'Black')
 
 
-B1= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
+B1= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()#you only need B1 (B2 to B15 are unnecessary)
 B2= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
 B3= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
 B4= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
@@ -33,7 +33,7 @@ B14= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").conver
 B15= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
 
 
-Bullet_list=[B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13,B14,B15]
+Bullet_list=[B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13,B14,B15] #This could be [B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1]
 Used_list=[]
 
 bul_stat=False
@@ -46,17 +46,17 @@ while True:
             exit()
     
     if len(Bullet_list)==1:
-        pygame.time.delay(3000) 
+        pygame.time.delay(3000) #use a seperate timer instead of this (This causes the whole program to pause) 
         screen.blit(text_surface2,(300,800))
         Bullet_list.extend(Used_list)
         
 
     if len(Bullet_list)<=10:
-        screen.blit(text_surface,(300,800))
+        screen.blit(text_surface,(300,800)) #create a variable and blit it if the variable is True. The problem with this is that this is only displayed in one frame.
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_r]:
-        pygame.time.delay(5000) 
+        pygame.time.delay(5000) #use a seperate timer instead of this (This causes the whole program to pause)  
         Bullet_list.extend(Used_list)
 
     screen.blit(sky_surface,(0,0))
