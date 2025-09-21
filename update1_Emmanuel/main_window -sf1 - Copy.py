@@ -1,0 +1,503 @@
+import pygame
+from sys import exit
+from tkinter import*
+from tkinter import messagebox
+import mysql.connector as mc
+co=mc.connect(host='localhost',passwd='mysql',database='pixel_shooter',user='root')
+cuo=co.cursor()
+
+window1=Tk()
+window1.geometry("300x100")
+window1.title("login or signin")
+window1.config(background='White')
+login=False
+
+def log():
+    global window1
+    signin_button.config(state=DISABLED)
+    login_button.config(state=DISABLED)
+    window=Tk()
+    window.geometry("300x300")
+    window.title("login")
+    window.config(background='White')
+    def login():
+        global login
+        passwd=pas.get()
+        use=user.get()
+        pas.delete(0,END)
+        user.delete(0,END)
+        if passwd.isdigit():
+            q="Select password,username from udet where password={} and username='{}'".format(passwd,use)
+            cuo.execute(q)
+            d=cuo.fetchall()
+            if len(d)==0:
+                messagebox.showerror('error','wrong password or username')
+            else:
+                login=True
+                messagebox.showinfo('WELCOME','Welcom back, "{}"'.format(use))
+                submit_button.config(state=DISABLED)
+                window.destroy()
+                window1.destroy()
+        else:
+            messagebox.showerror('error','wrong password or username')
+    username=Label(window,text='username')
+    passwordl=Label(window,text='password')
+    pas=Entry(window,bg='lightblue')
+    user=Entry(window,bg='lightblue')
+    submit_button=Button(window,
+                         text='submit',
+                         command=login,
+                         state=ACTIVE)
+    passwordl.pack()
+    pas.pack()
+    username.pack()
+    user.pack()
+    submit_button.pack()
+
+    window.mainloop()
+    
+
+def sign():
+    global window1
+    signin_button.config(state=DISABLED)
+    login_button.config(state=DISABLED)
+    window=Tk()
+    window.geometry("300x300")
+    window.title("signin")
+    window.config(background='White')
+    def signin():
+        passwd=pas.get()
+        use=user.get()
+        pas.delete(0,END)
+        user.delete(0,END)
+        if passwd.isdigit():
+            q="Select password from udet where password={}".format(passwd)
+            cuo.execute(q)
+            d=cuo.fetchall()
+            if len(d)>0:
+                messagebox.showerror('error','please try another password')
+            else:
+                q="Select username from udet where username='{}'".format(use)
+                cuo.execute(q)
+                d=cuo.fetchall()
+                if len(d)>0 or len(use)>20:
+                    messagebox.showerror('error','please try another username with less than 20 characters')
+                else:
+                    q='insert into udet values({},"{}")'.format(passwd,use)
+                    cuo.execute(q)
+                    co.commit()
+                    q='insert into ugame values("{}",0,0,0)'.format(use)
+                    cuo.execute(q)
+                    co.commit()
+                    messagebox.showinfo('WELCOME','successfully signed in')
+                    submit_button.config(state=DISABLED)
+                    window.destroy()
+                    window1.destroy()
+                
+        else:
+            messagebox.showerror('error','please enter an integer as password')
+    pas=Entry(window,bg='lightblue')
+    user=Entry(window,bg='lightblue')
+    submit_button=Button(window,
+                         text='submit',
+                         command=signin,
+                         state=ACTIVE)
+    username=Label(window,text='username')
+    passwordl=Label(window,text='password')
+    submit_button.pack()
+    passwordl.pack()
+    pas.pack()
+    username.pack()
+    user.pack()
+    window.mainloop()
+
+login_button=Button(window1,
+                     text='login',
+                     command=log,
+                     state=ACTIVE)
+signin_button=Button(window1,
+                     text='signin',
+                     command=sign,
+                     state=ACTIVE)
+login_button.pack()
+signin_button.pack()
+window1.mainloop()
+
+if login:
+    pygame.init()
+    screen=pygame.display.set_mode((0,0),pygame.FULLSCREEN) #screen
+    clock=pygame.time.Clock() #clock
+
+    class bg:
+    
+        x=800
+        y=450
+        up_enable=True #moving background layout up
+        right_enable=True #moving background layout right
+        left_enable=True #moving background layout left
+        down_enable=True #moving background layout down
+        vel=0 #gravity velocity
+        grav_acc=.2 #acceleration due to gravity
+    
+        def __init__(self):
+            self.bg=pygame.image.load("map_layout.png").convert_alpha() #import image
+            self.bg=pygame.transform.rotozoom(self.bg,0,2) #transform size
+            self.bg_rect=self.bg.get_rect(center=(bg.x,bg.y)) #rectangle
+            self.bg_mask=pygame.mask.from_surface(self.bg) #mask
+
+        
+        @classmethod
+        def up(cls):
+            if cls.up_enable:
+                cls.y+=3
+        @classmethod
+        def down(cls):
+            if cls.down_enable:
+                cls.y-=3
+        @classmethod
+        def right(cls):
+            if cls.right_enable:
+                cls.x-=5
+        @classmethod
+        def left(cls):
+            if cls.left_enable:
+                cls.x+=5
+        
+        def gravity(self):
+            if bg.down_enable:
+                bg.y-=self.vel
+                self.vel+=self.grav_acc
+
+        def blit(self,screen):
+            self.bg_rect.center=(bg.x,bg.y)
+            screen.blit(self.bg,self.bg_rect)
+
+    class tempchar():
+        x=500
+        y=500
+        def __init__(self):
+            self.ptemprect_image=pygame.Surface((20,20)) #surface    ------temporary-------#################
+            self.ptemprect_image.fill('Yellow') #fill red colour    ------temporary------##############
+        def blit(self,screen):
+            screen.blit(self.ptemprect_image,(bg.x+10,bg.y-150))
+
+    char=tempchar()
+        
+
+    class background:
+        
+        x=800
+        y=450
+        up_enable=True #moving background layout up
+        right_enable=True #moving background layout right
+        left_enable=True #moving background layout left
+        down_enable=True #moving background layout down
+        vel=0*.5/3 #gravity velocity
+        grav_acc=.2*.5/3 #acceleration due to gravity
+        
+        def __init__(self):
+            self.image=pygame.image.load("background.png").convert_alpha() #import image
+            self.image=pygame.transform.rotozoom(self.image,0,2) #transform size
+            self.rect=self.image.get_rect(center=(background.x,background.y)) #rectangle
+            
+        @classmethod
+        def up(cls):
+            if cls.up_enable:
+                cls.y+=.5
+        @classmethod
+        def down(cls):
+            if cls.down_enable:
+                cls.y-=.5
+        @classmethod
+        def right(cls):
+            if cls.right_enable:
+                cls.x-=5*.5/3
+        @classmethod
+        def left(cls):
+            if cls.left_enable:
+                cls.x+=5*.5/3
+        
+        def gravity(self):
+            if background.down_enable:
+                background.y-=self.vel
+                self.vel+=self.grav_acc
+
+        def blit(self,window):
+            self.rect.center=(background.x,background.y)
+            window.blit(self.image,self.rect)
+
+
+    class main_character:
+        def __init__(self):
+            #main_character
+            self.rect_image=pygame.Surface((20,20)) #surface    ------temporary-------
+            self.rect_image.fill('Green') #fill red colour    ------temporary------
+            self.rect_rect_image=self.rect_image.get_rect(center=(700,450)) #rectangle
+            self.rect_image_mask=pygame.mask.from_surface(self.rect_image) #mask
+
+            #character_bottom
+            self.rect_bottom_image=pygame.Surface((5,1)) #surface
+            self.rect_bottom_image.fill('Red') #fill red colour
+            self.rect_bottom_rect_image=self.rect_bottom_image.get_rect(center=(700,455)) #rectangle
+            self.rect_bottom_image_mask=pygame.mask.from_surface(self.rect_bottom_image) #mask
+
+            #character_top
+            self.rect_top_image=pygame.Surface((5,1)) #surface
+            self.rect_top_image.fill('Red') #fill red colour
+            self.rect_top_rect_image=self.rect_top_image.get_rect(center=(700,445)) #rectangle
+            self.rect_top_image_mask=pygame.mask.from_surface(self.rect_top_image) #mask
+
+            #character_right
+            self.rect_right_image=pygame.Surface((1,5)) #surface
+            self.rect_right_image.fill('Red') #fill red colour
+            self.rect_right_rect_image=self.rect_right_image.get_rect(center=(695,450)) #rectangle
+            self.rect_right_image_mask=pygame.mask.from_surface(self.rect_right_image) #mask
+
+            #character_left
+            self.rect_left_image=pygame.Surface((1,5)) #surface
+            self.rect_left_image.fill('Red') #fill red colour
+            self.rect_left_rect_image=self.rect_left_image.get_rect(center=(705,450)) #rectangle
+            self.rect_left_image_mask=pygame.mask.from_surface(self.rect_left_image) #mask
+
+            #character_sub_bottom
+            self.sub_rect_bottom_image=pygame.Surface((17,1)) #surface
+            self.sub_rect_bottom_image.fill('Blue') #fill red colour
+            self.sub_rect_bottom_rect_image=self.rect_bottom_image.get_rect(center=(694.5,460)) #rectangle
+            self.sub_rect_bottom_image_mask=pygame.mask.from_surface(self.rect_bottom_image) #mask
+
+            #character_sub_top
+            self.sub_rect_top_image=pygame.Surface((17,1)) #surface
+            self.sub_rect_top_image.fill('Blue') #fill red colour
+            self.sub_rect_top_rect_image=self.rect_top_image.get_rect(center=(694,440)) #rectangle
+            self.sub_rect_top_image_mask=pygame.mask.from_surface(self.rect_top_image) #mask
+
+            #character_sub_right
+            self.sub_rect_right_image=pygame.Surface((1,20)) #surface
+            self.sub_rect_right_image.fill('Blue') #fill red colour
+            self.sub_rect_right_rect_image=self.rect_right_image.get_rect(center=(690,442)) #rectangle
+            self.sub_rect_right_image_mask=pygame.mask.from_surface(self.rect_right_image) #mask
+
+            #character_sub_left
+            self.sub_rect_left_image=pygame.Surface((1,20)) #surface
+            self.sub_rect_left_image.fill('Blue') #fill red colour
+            self.sub_rect_left_rect_image=self.rect_left_image.get_rect(center=(710,441.5)) #rectangle
+            self.sub_rect_left_image_mask=pygame.mask.from_surface(self.rect_left_image) #mask
+        def collision_main_character(self,bg_rect,bg_mask,dir_up_enable,dir_down_enable,dir_right_enable,dir_left_enable):
+            if self.rect_image_mask.overlap(bg_mask,(bg_rect.x-self.rect_rect_image.x-10,bg_rect.y-self.rect_rect_image.y)) and dir_up_enable==False:
+                bg.y-=1
+                background.y-=1*.5/3
+            if self.rect_image_mask.overlap(bg_mask,(bg_rect.x-self.rect_rect_image.x-10,bg_rect.y-self.rect_rect_image.y)) and dir_down_enable==False and dir_up_enable:
+                bg.y+=.2
+                background.y+=.2*.5/3
+            if self.rect_image_mask.overlap(bg_mask,(bg_rect.x-self.rect_rect_image.x+15,bg_rect.y-self.rect_rect_image.y)) and dir_left_enable==False:
+                bg.x-=1
+                background.x-=1*.5/3
+            if self.rect_image_mask.overlap(bg_mask,(bg_rect.x-self.rect_rect_image.x-10,bg_rect.y-self.rect_rect_image.y)) and dir_right_enable==False and dir_up_enable:
+                bg.x+=1
+                background.x+=1*.5/3
+            #bottom_collision
+            if self.rect_bottom_image_mask.overlap(bg_mask,(bg_rect.x-self.rect_bottom_rect_image.x,bg_rect.y-self.rect_bottom_rect_image.y)):
+                dir_down_enable=False
+            elif self.sub_rect_bottom_image_mask.overlap(bg_mask,(bg_rect.x-self.sub_rect_bottom_rect_image.x,bg_rect.y-self.sub_rect_bottom_rect_image.y)):
+                dir_down_enable=False
+            else:
+                dir_down_enable=True
+
+            #top_collision
+            if self.rect_top_image_mask.overlap(bg_mask,(bg_rect.x-self.rect_top_rect_image.x,bg_rect.y-self.rect_top_rect_image.y)):
+                dir_up_enable=False
+            elif self.sub_rect_top_image_mask.overlap(bg_mask,(bg_rect.x-self.sub_rect_top_rect_image.x,bg_rect.y-self.sub_rect_top_rect_image.y)):
+                dir_up_enable=False
+            else:
+                dir_up_enable=True
+
+            #right_collision
+            if self.rect_right_image_mask.overlap(bg_mask,(bg_rect.x-self.rect_right_rect_image.x,bg_rect.y-self.rect_right_rect_image.y)):
+                dir_left_enable=False
+            elif self.sub_rect_right_image_mask.overlap(bg_mask,(bg_rect.x-self.sub_rect_right_rect_image.x,bg_rect.y-self.sub_rect_right_rect_image.y)):
+                dir_left_enable=False
+            else:
+                dir_left_enable=True
+
+            #left_collision
+            if self.rect_left_image_mask.overlap(bg_mask,(bg_rect.x-self.rect_left_rect_image.x,bg_rect.y-self.rect_left_rect_image.y)):
+                dir_right_enable=False
+            elif self.sub_rect_left_image_mask.overlap(bg_mask,(bg_rect.x-self.sub_rect_left_rect_image.x,bg_rect.y-self.sub_rect_left_rect_image.y)):
+                dir_right_enable=False
+            else:
+                dir_right_enable=True
+                
+            return dir_up_enable,dir_down_enable,dir_right_enable,dir_left_enable
+        
+        def blit(self,window):
+            window.blit(self.rect_image,self.rect_rect_image)
+            window.blit(self.sub_rect_top_image,self.sub_rect_top_rect_image)
+            window.blit(self.sub_rect_bottom_image,self.sub_rect_bottom_rect_image)
+            window.blit(self.sub_rect_right_image,self.sub_rect_right_rect_image)
+            window.blit(self.sub_rect_left_image,self.sub_rect_left_rect_image)
+
+
+
+    def instruction_screen():
+        global menu_colour
+        #instructions
+        instruction_text1=text_font.render('INSTRUCTIONS:',False,'Red')
+        instruction_text2=text_font.render('Jump:Up arrow',False,'Black')
+        instruction_text3=text_font.render('Move left:Left arrow',False,'Black')
+        instruction_text4=text_font.render('Move right:Right arrow',False,'Black')
+        instruction_text5=text_font.render('Shoot bullet:Space key',False,'Black')
+        instruction_text6=text_font.render('Reload:R',False,'Black')
+        instruction_text7=text_font.render('Exit:x',False,'Black')
+        back_to_menu=text_font.render('<----MENU',False,'Red')
+        back_to_menu_rect=back_to_menu.get_rect(center=(1400,800))
+        menu_back=pygame.Surface((230,50))#back to menu button
+        menu_back_rect=menu_back.get_rect(center=(1400,800))
+        if menu_colour==0:
+            menu_back.fill('Yellow')
+        else:
+            menu_back.fill('White')
+        #display
+        screen.fill('Light blue')
+        screen.blit(instruction_text1,(500,0))
+        screen.blit(instruction_text2,(500,50))
+        screen.blit(instruction_text3,(500,100))
+        screen.blit(instruction_text4,(500,150))
+        screen.blit(instruction_text5,(500,200))
+        screen.blit(instruction_text6,(500,250))
+        screen.blit(instruction_text7,(500,300))
+        screen.blit(menu_back,menu_back_rect)
+        screen.blit(back_to_menu,back_to_menu_rect)
+        # mouse sensing
+        if menu_back_rect.collidepoint(pygame.mouse.get_pos()):
+            menu_colour=1
+            if pygame.mouse.get_pressed()[0]:
+                global game_status
+                game_status=0 #menu screen
+        else:
+            menu_colour=0
+    def menu():
+        global game_status
+        # mouse sensing
+        if menu_play_rect_rect.collidepoint(pygame.mouse.get_pos()):
+            menu_play_rect.fill('White')
+            if pygame.mouse.get_pressed()[0]:
+                game_status=1 #playing game
+        else:
+            menu_play_rect.fill('Yellow')
+        if menu_instruction_rect_rect.collidepoint(pygame.mouse.get_pos()):
+            menu_instruction_rect.fill('White')
+            if pygame.mouse.get_pressed()[0]:
+                game_status=2 #instruction screen
+        else:
+            menu_instruction_rect.fill('Yellow')
+        screen.fill('Grey')
+        screen.blit(menu_play_rect,play_menu_rect)
+        screen.blit(play_menu,play_menu_rect)
+        screen.blit(menu_instruction_rect,instruction_menu_rect)
+        screen.blit(instruction_menu,instruction_menu_rect)
+
+
+    text_font=pygame.font.Font('C:/Windows/Fonts/Inkfree.TTF',50) #text font
+
+    play_menu=text_font.render('PLAY',False,'Blue') #text
+    play_menu_rect=play_menu.get_rect(center=(800,400)) #rectangle of text
+    menu_play_rect=pygame.Surface((135,55)) #surface
+    menu_play_rect.fill('Yellow') #filling colour
+    menu_play_rect_rect=menu_play_rect.get_rect(center=(800,400)) #rectangle of button
+
+    instruction_menu=text_font.render('INSTRUCTIONS',False,'Blue') #text
+    instruction_menu_rect=instruction_menu.get_rect(center=(800,500))#rectangle of text
+    menu_instruction_rect=pygame.Surface((395,55)) #button
+    menu_instruction_rect.fill('Yellow') #filling colour
+    menu_instruction_rect_rect=menu_instruction_rect.get_rect(center=(800,500))#rectangle of button
+
+    menu_colour=0 #colour of back to menu button--0:yellow---1:white
+
+    game_status=0 #game mode:1  menu mode:0  instruction mode:2
+
+    #jump variables
+    acc_gravity=.2
+    jump_velocity=10
+    jump_status=0
+
+    #main_character
+    main_character1=main_character()
+
+    #background_layout
+    bg1=bg()
+
+    #backgound_image
+    background1=background()
+
+    #running game
+    while True:
+
+        #events
+        for event in pygame.event.get():
+            if event.type==pygame.QUIT:
+                pygame.quit()
+                exit()
+        key=pygame.key.get_pressed()
+        if key[pygame.K_x]: #quiting
+            pygame.quit()
+            exit()
+            #input events
+        if game_status==1:
+            bg.up_enable,bg.down_enable,bg.right_enable,bg.left_enable=main_character1.collision_main_character(bg1.bg_rect
+                                                                                                                ,bg1.bg_mask
+                                                                                                                ,bg.up_enable
+                                                                                                                ,bg.down_enable
+                                                                                                                ,bg.right_enable
+                                                                                                                ,bg.left_enable)
+            background.up_enable,background.down_enable,background.right_enable,background.left_enable=main_character1.collision_main_character(bg1.bg_rect
+                                                                                                                ,bg1.bg_mask
+                                                                                                                ,bg.up_enable
+                                                                                                                ,bg.down_enable
+                                                                                                                ,bg.right_enable
+                                                                                                                ,bg.left_enable)
+            #movement inputs
+            if key[pygame.K_LEFT] or key[pygame.K_a]:
+                bg.left()
+                background.left()
+            if bg.down_enable==False:
+                bg1.vel=0
+                background1.vel=0
+
+            #jump
+            if (key[pygame.K_UP] or key[pygame.K_w]) and bg.down_enable==False and bg.up_enable:
+                jump_status=1
+                bg.y+=jump_velocity
+                background.y+=jump_velocity*.5/3
+                jump_velocity-=acc_gravity
+            if jump_status==1:
+                bg.y+=jump_velocity
+                background.y+=jump_velocity*.5/3
+                jump_velocity-=acc_gravity
+                if jump_velocity<=0 or bg.up_enable==False:
+                    jump_status=0
+                    jump_velocity=10
+                    bg1.vel=-.3
+                    background1.vel=-.3*.5/3
+            if key[pygame.K_RIGHT] or key[pygame.K_d]:
+                bg.right()
+                background.right()
+            if bg.down_enable and jump_status==0:
+                bg1.gravity()
+                background1.gravity()
+              
+            #screen bliting
+            background1.blit(screen)
+            bg1.blit(screen)
+            main_character1.blit(screen)
+            char.blit(screen)
+            px1,py1=bg.x,bg.y
+            px2,py2=500,500
+        if game_status==0:
+            menu()
+        if game_status==2:
+            instruction_screen()
+
+
+        pygame.display.update()
+
+        clock.tick(100) #clock speed
