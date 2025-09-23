@@ -17,27 +17,13 @@ text_surface2=test_font.render('Reloading!!',False,'Black')
 
 
 B1= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()#you only need B1 (B2 to B15 are unnecessary)
-B2= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
-B3= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
-B4= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
-B5= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
-B6= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
-B7= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
-B8= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
-B9= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
-B10= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
-B11= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
-B12= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
-B13= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
-B14= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
-B15= pygame.image.load("D:\\VS Code\\Blah Blah\\Untitled design (7).png").convert()
 
-
-Bullet_list=[B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13,B14,B15] #This could be [B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1]
+Bullet_list=[B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1] #This could be [B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1]
 Used_list=[]
 
 bul_stat=False
 bullet_rect=Bullet_list[0].get_rect(topleft=(x,y))
+Re_war=False
 
 while True:
     for event in pygame.event.get():
@@ -51,9 +37,15 @@ while True:
         Bullet_list.extend(Used_list)
         
 
-    if len(Bullet_list)<=10:
-        screen.blit(text_surface,(300,800)) #create a variable and blit it if the variable is True. The problem with this is that this is only displayed in one frame.
+    if len(Bullet_list)<=5:
+        Re_war=True
 
+    if len(Bullet_list)>=11:
+        Re_war=False
+
+    if Re_war==True:
+        screen.blit(text_surface,(300,800))
+    
     keys = pygame.key.get_pressed()
     if keys[pygame.K_r]:
         pygame.time.delay(5000) #use a seperate timer instead of this (This causes the whole program to pause)  
